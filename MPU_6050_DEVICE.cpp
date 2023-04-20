@@ -11,20 +11,22 @@ MPU_6050_Device::MPU_6050_Device(uint8_t I2C_addr, uint8_t PIN_WIRE_SDA, uint8_t
 }
 //private
 void MPU_6050_Device::sensorCalibration(){
-  Serial.println("Sensor Calibration. Don't move the device!");
-    Serial.print("....");
-    for (RateCalibrationNumber=0; RateCalibrationNumber<2000; RateCalibrationNumber ++) {
-        //Serial.print(".");
-      update();
-      RateCalibrationRoll+=RateRoll;
-      RateCalibrationPitch+=RatePitch;
-      RateCalibrationYaw+=RateYaw;
-      delay(1);
+    if(connected()){
+        Serial.println("Sensor Calibration. Don't move the device!");
+        Serial.print("....");
+        for (RateCalibrationNumber=0; RateCalibrationNumber<2000; RateCalibrationNumber ++) {
+            //Serial.print(".");
+        update();
+        RateCalibrationRoll+=RateRoll;
+        RateCalibrationPitch+=RatePitch;
+        RateCalibrationYaw+=RateYaw;
+        delay(1);
+        }
+        RateCalibrationRoll/=2000;
+        RateCalibrationPitch/=2000;
+        RateCalibrationYaw/=2000;
+        Serial.println("\nCalibration Done.");
     }
-    RateCalibrationRoll/=2000;
-    RateCalibrationPitch/=2000;
-    RateCalibrationYaw/=2000;
-      Serial.println("\nCalibration Done.");
 }
 void MPU_6050_Device::kalman_1d(float KalmanState, float KalmanUncertainty, float KalmanInput, float KalmanMeasurement) {
     KalmanState=KalmanState+0.004*KalmanInput;
@@ -51,28 +53,30 @@ void MPU_6050_Device::calculateKalman(){
 
 // public
 void MPU_6050_Device::init(){
-    Serial.println("\nInitializing MPU.");
-    //Wire.setClock(400000);
-    Wire.begin(PIN_WIRE_SDA, PIN_WIRE_SCL,400000); // SDA , SCL, Clock
-    if(!connected()){  }
-    Wire.beginTransmission(i2C_addr); 
-    Wire.write(i2C_addr); // Power management
-    Wire.write(0x00); // start Sensors
-    Wire.endTransmission();
-    Wire.beginTransmission(i2C_addr); // lowpass filter - Acc and Gyro
-    Wire.write(0x1A); // Gyro >> >> 5 - 10hz ; 4 - 20Hz ; 3 - 42Hz ; 2 - 98Hz ; 1 - 188Hz ; 0 - 256Hz; 
-    Wire.write(0x05); //Acc >> 5 - 10hz ; 4 - 21Hz ; 3 - 44Hz ; 2 - 94Hz ; 1 - 184Hz ; 0 - 260Hz; 
-    Wire.endTransmission();
-    Wire.beginTransmission(i2C_addr); 
-    Wire.write(0x1B); // Gyro sensitivity scale factor
-    Wire.write(0x8); // 0 - 250deg/sec ; 1 - 500deg/sec ; 2 - 1000deg/sec ; 3 - 2000deg/sec ;
-    Wire.endTransmission();
-    Wire.beginTransmission(i2C_addr);
-    Wire.write(0x1C); // Gyro 
-    Wire.write(0x10);
-    Wire.endTransmission();
-    sensorCalibration();
-    Serial.println("\nMPU6050 init Done.");
+    if(connected()){
+        Serial.println("\nInitializing MPU.");
+        //Wire.setClock(400000);
+        Wire.begin(PIN_WIRE_SDA, PIN_WIRE_SCL,400000); // SDA , SCL, Clock
+        if(!connected()){  }
+        Wire.beginTransmission(i2C_addr); 
+        Wire.write(i2C_addr); // Power management
+        Wire.write(0x00); // start Sensors
+        Wire.endTransmission();
+        Wire.beginTransmission(i2C_addr); // lowpass filter - Acc and Gyro
+        Wire.write(0x1A); // Gyro >> >> 5 - 10hz ; 4 - 20Hz ; 3 - 42Hz ; 2 - 98Hz ; 1 - 188Hz ; 0 - 256Hz; 
+        Wire.write(0x05); //Acc >> 5 - 10hz ; 4 - 21Hz ; 3 - 44Hz ; 2 - 94Hz ; 1 - 184Hz ; 0 - 260Hz; 
+        Wire.endTransmission();
+        Wire.beginTransmission(i2C_addr); 
+        Wire.write(0x1B); // Gyro sensitivity scale factor
+        Wire.write(0x8); // 0 - 250deg/sec ; 1 - 500deg/sec ; 2 - 1000deg/sec ; 3 - 2000deg/sec ;
+        Wire.endTransmission();
+        Wire.beginTransmission(i2C_addr);
+        Wire.write(0x1C); // Gyro 
+        Wire.write(0x10);
+        Wire.endTransmission();
+        sensorCalibration();
+        Serial.println("\nMPU6050 init Done.");
+    }
 }
 
 void MPU_6050_Device::update(){
