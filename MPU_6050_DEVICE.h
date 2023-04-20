@@ -5,6 +5,8 @@
 
 class MPU_6050_Device {
 private:
+    bool FOUND_MPU = false;
+    bool ERROR_SEND = false;
     int PIN_WIRE_SDA = 21;
     int PIN_WIRE_SCL = 22;
     int i2C_addr = 0x68;
@@ -49,3 +51,4 @@ public:
     float getTemperature(void);
 };
 #endif
+
