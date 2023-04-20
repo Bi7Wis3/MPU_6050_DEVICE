@@ -125,7 +125,7 @@ bool MPU_6050_Device::connected(){
          ERROR_SEND = false;
      } // end of good response
      else {
-         if(!ERROR_STATED){
+         if(!ERROR_SEND){
                 Serial.println("MPU6050 not found @ 0X" + String(i2C_addr,HEX));
                 ERROR_SEND = true;
          }
@@ -191,4 +191,5 @@ float MPU_6050_Device::getRawAccY(){
 float MPU_6050_Device::getRawAccZ(){
     return AccZLSB;
 }
+
 
