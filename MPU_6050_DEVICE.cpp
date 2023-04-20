@@ -80,7 +80,7 @@ void MPU_6050_Device::init(){
 }
 
 void MPU_6050_Device::update(){
-    if(FOUND_MPU){
+    if(connected()){
         Wire.beginTransmission(i2C_addr);
         Wire.write(0x3B); // get gyro data
         Wire.endTransmission(); 
