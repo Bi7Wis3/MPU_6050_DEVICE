@@ -114,14 +114,21 @@ void MPU_6050_Device::update(){
         temp = NULL;
     }
 }
+
+
 bool MPU_6050_Device::connected(){
     Wire.beginTransmission (i2C_addr);
     if (Wire.endTransmission () == 0){
          return true;
          Serial.println("MPU6050 found @ 0X" + String(i2C_addr,HEX));
+         FOUND_MPU = true;
+         ERROR_SEND = false;
      } // end of good response
      else {
-         Serial.println("MPU6050 not found @ 0X" + String(i2C_addr,HEX));
+         if(!ERROR_STATED){
+                Serial.println("MPU6050 not found @ 0X" + String(i2C_addr,HEX));
+                ERROR_SEND = true;
+         }
          return false;
      }
 }
@@ -184,3 +191,4 @@ float MPU_6050_Device::getRawAccY(){
 float MPU_6050_Device::getRawAccZ(){
     return AccZLSB;
 }
+
