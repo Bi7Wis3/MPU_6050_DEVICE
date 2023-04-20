@@ -80,16 +80,16 @@ void MPU_6050_Device::init(){
 }
 
 void MPU_6050_Device::update(){
-    if(connected()){
+    if(FOUND_MPU){
         Wire.beginTransmission(i2C_addr);
-        Wire.write(0x3B);
+        Wire.write(0x3B); // get gyro data
         Wire.endTransmission(); 
         Wire.requestFrom(i2C_addr,6);
         AccXLSB = Wire.read() << 8 | Wire.read();
         AccYLSB = Wire.read() << 8 | Wire.read();
         AccZLSB = Wire.read() << 8 | Wire.read();
         Wire.beginTransmission(i2C_addr);
-        Wire.write(0x43);
+        Wire.write(0x43); // get acc data
         Wire.endTransmission();
         Wire.requestFrom(i2C_addr,6);
         GyroX=Wire.read()<<8 | Wire.read();
@@ -191,5 +191,6 @@ float MPU_6050_Device::getRawAccY(){
 float MPU_6050_Device::getRawAccZ(){
     return AccZLSB;
 }
+
 
 
