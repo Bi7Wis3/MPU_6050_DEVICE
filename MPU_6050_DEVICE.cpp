@@ -12,11 +12,11 @@ MPU_6050_Device::MPU_6050_Device(uint8_t I2C_addr, uint8_t PIN_WIRE_SDA, uint8_t
 //private
 void MPU_6050_Device::sensorCalibration(){
     if(connected()){
-        Serial.println("Sensor Calibration. Don't move the device!");
-        Serial.print("....");
+        if(SERIAL_OUTPUT) Serial.println("Sensor Calibration. Don't move the device!");
+        if(SERIAL_OUTPUT) Serial.println("....");
         for (RateCalibrationNumber=0; RateCalibrationNumber<2000; RateCalibrationNumber ++) {
             //Serial.print(".");
-        update();
+    //update();
         RateCalibrationRoll+=RateRoll;
         RateCalibrationPitch+=RatePitch;
         RateCalibrationYaw+=RateYaw;
@@ -25,7 +25,7 @@ void MPU_6050_Device::sensorCalibration(){
         RateCalibrationRoll/=2000;
         RateCalibrationPitch/=2000;
         RateCalibrationYaw/=2000;
-        Serial.println("\nCalibration Done.");
+        if(SERIAL_OUTPUT) Serial.println("Calibration Done.");
     }
 }
 void MPU_6050_Device::kalman_1d(float KalmanState, float KalmanUncertainty, float KalmanInput, float KalmanMeasurement) {
@@ -53,32 +53,50 @@ void MPU_6050_Device::calculateKalman(){
 
 // public
 void MPU_6050_Device::init(){
-    if(connected()){
-        Serial.println("\nInitializing MPU.");
-        //Wire.setClock(400000);
-        Wire.begin(PIN_WIRE_SDA, PIN_WIRE_SCL,400000); // SDA , SCL, Clock
-        if(!connected()){  }
-        Wire.beginTransmission(i2C_addr); 
-        Wire.write(i2C_addr); // Power management
-        Wire.write(0x00); // start Sensors
-        Wire.endTransmission();
-        Wire.beginTransmission(i2C_addr); // lowpass filter - Acc and Gyro
-        Wire.write(0x1A); // Gyro >> >> 5 - 10hz ; 4 - 20Hz ; 3 - 42Hz ; 2 - 98Hz ; 1 - 188Hz ; 0 - 256Hz; 
-        Wire.write(0x05); //Acc >> 5 - 10hz ; 4 - 21Hz ; 3 - 44Hz ; 2 - 94Hz ; 1 - 184Hz ; 0 - 260Hz; 
-        Wire.endTransmission();
-        Wire.beginTransmission(i2C_addr); 
-        Wire.write(0x1B); // Gyro sensitivity scale factor
-        Wire.write(0x8); // 0 - 250deg/sec ; 1 - 500deg/sec ; 2 - 1000deg/sec ; 3 - 2000deg/sec ;
-        Wire.endTransmission();
-        Wire.beginTransmission(i2C_addr);
-        Wire.write(0x1C); // Gyro 
-        Wire.write(0x10);
-        Wire.endTransmission();
-        sensorCalibration();
-        Serial.println("\nMPU6050 init Done.");
+        // join I2C bus (I2Cdev library doesn't do this automatically)
+        Wire.begin(PIN_WIRE_SDA, PIN_WIRE_SCL);
+        Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
+        delay(250);
+        if(connected()){
+            if(SERIAL_OUTPUT) Serial.println("\nInitializing MPU.");
+            Wire.beginTransmission(i2C_addr); 
+            Wire.write(i2C_addr); // Power management
+            Wire.write(0x6B);
+            Wire.write(0x00); // start Sensors
+            Wire.endTransmission();
+            Wire.beginTransmission(i2C_addr); // lowpass filter - Acc and Gyro
+            Wire.write(0x1A); // Gyro >> >> 5 - 10hz ; 4 - 20Hz ; 3 - 42Hz ; 2 - 98Hz ; 1 - 188Hz ; 0 - 256Hz; 
+            Wire.write(0x05); //Acc >> 5 - 10hz ; 4 - 21Hz ; 3 - 44Hz ; 2 - 94Hz ; 1 - 184Hz ; 0 - 260Hz; 
+            Wire.endTransmission();
+            Wire.beginTransmission(i2C_addr); 
+            Wire.write(0x1B); // Gyro sensitivity scale factor
+            Wire.write(0x8); // 0 - 250deg/sec ; 1 - 500deg/sec ; 2 - 1000deg/sec ; 3 - 2000deg/sec ;
+            Wire.endTransmission();
+            Wire.beginTransmission(i2C_addr);
+            Wire.write(0x1C); // Gyro 
+            Wire.write(0x10);
+            Wire.endTransmission();
+            sensorCalibration();
+            if(SERIAL_OUTPUT) Serial.println("MPU6050 init Done.");
     }
 }
 
+bool MPU_6050_Device::connected(){
+    Wire.beginTransmission(i2C_addr);
+    if (Wire.endTransmission () == 0){
+         return true;
+         if(SERIAL_OUTPUT) Serial.println("\nMPU6050 found @ 0X" + String(i2C_addr,HEX));
+         FOUND_MPU = true;
+         ERROR_SEND = false;
+     } // end of good response
+     else {
+         if(!ERROR_SEND){
+                if(SERIAL_OUTPUT) Serial.println("\nMPU6050 not found @ 0X" + String(i2C_addr,HEX));
+                ERROR_SEND = true;
+         }
+         return false;
+     }
+}
 void MPU_6050_Device::update(){
     if(connected()){
         Wire.beginTransmission(i2C_addr);
@@ -113,24 +131,6 @@ void MPU_6050_Device::update(){
         KalmanAnglePitch = NULL;
         temp = NULL;
     }
-}
-
-
-bool MPU_6050_Device::connected(){
-    Wire.beginTransmission (i2C_addr);
-    if (Wire.endTransmission () == 0){
-         return true;
-         Serial.println("MPU6050 found @ 0X" + String(i2C_addr,HEX));
-         FOUND_MPU = true;
-         ERROR_SEND = false;
-     } // end of good response
-     else {
-         if(!ERROR_SEND){
-                Serial.println("MPU6050 not found @ 0X" + String(i2C_addr,HEX));
-                ERROR_SEND = true;
-         }
-         return false;
-     }
 }
 float MPU_6050_Device::getTemperature(){
         return temp;
@@ -191,6 +191,15 @@ float MPU_6050_Device::getRawAccY(){
 float MPU_6050_Device::getRawAccZ(){
     return AccZLSB;
 }
+
+void MPU_6050_Device::enableSerialOutput(bool serOut){
+        if(serOut){
+            SERIAL_OUTPUT = true;
+        } else{
+            SERIAL_OUTPUT = false;
+        }
+}
+
 
 
 
