@@ -7,6 +7,7 @@ class MPU_6050_Device {
 private:
     bool FOUND_MPU = false;
     bool ERROR_SEND = false;
+    bool SERIAL_OUTPUT = false;
     int PIN_WIRE_SDA = 21;
     int PIN_WIRE_SCL = 22;
     int i2C_addr = 0x68;
@@ -49,6 +50,6 @@ public:
     float getRawAccY(void);
     float getRawAccZ(void);
     float getTemperature(void);
+    void enableSerialOutput(bool serOut);
 };
 #endif
-
