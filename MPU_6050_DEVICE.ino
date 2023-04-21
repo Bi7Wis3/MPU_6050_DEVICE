@@ -9,24 +9,24 @@
 #include "MPU_6050_DEVICE.h"
 
 uint8_t i2c_address = 0x68;
-uint8_t sda_pin = 21;
-uint8_t scl_pin = 22;
+uint8_t sda_pin = 18;
+uint8_t scl_pin = 17;
 
 float PitchAngleCorrection = -0.0; // user correction. to zero out angles.
 float RollAngleCorrection = -0.0;  // user correction. to zero out angles.
 
-MPU_6050_Device mpu(i2c_address); // for custom i2c address and default I2C pins - 0x69 for devices with A0 set to HIGH.
-//MPU_6050_Device mpu(i2c_address, sda_pin, scl_pin ); // for custom i2c and custom I2C pins
+//MPU_6050_Device mpu(i2c_address); // for custom i2c address and default I2C pins - 0x69 for devices with A0 set to HIGH.
+MPU_6050_Device mpu(i2c_address, sda_pin, scl_pin ); // for custom i2c and custom I2C pins
 
 void setup() {
     Serial.begin(115200);
+    mpu.enableSerialOutput(true); 
     mpu.init();
 }
 
 void loop() {
     mpu.update();
-//    bool mpuRunning = mpu.connected() ; // test if device exists
-//    Serial.print("MPU650 connected:" + String(mpuRunning) + "," );
+    if(mpu.connected()){
         Serial.print(String(mpu.getKalmanPitchAngle() - PitchAngleCorrection ) + ", " );
         Serial.print(String(mpu.getKalmanRollAngle() - RollAngleCorrection ) + ", ");
         Serial.print(String(mpu.getPitchAngle() ) + ", " );
@@ -45,4 +45,5 @@ void loop() {
         Serial.print(String(mpu.getRawAccZ() ) +", " );
         Serial.print(String(mpu.getTemperature(),1) );
         Serial.println();
+    }
 }
