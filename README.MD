@@ -8,7 +8,7 @@
 Notes: 
               Todo:
               - Add quarternations and other calculations
-              - 
+              - Add all possible hardware configs from datasheet.
 
     float getPitchAngle(void);
     float getRollAngle(void);
