@@ -2,7 +2,7 @@
                     Pitch & Roll Output.
                      with Kalman Filter
               By B1TwIs3 0p3r4ToR - no(C)2023
-   With thanks to : https://github.com/CarbonAeronautics for inspiration
+   With thanks to : https://github.com/CarbonAeronautics for inspiration.
         Tested on Arduino Pro mini, ESP32, Not working on ESP32-S3.
 
 Notes: 
